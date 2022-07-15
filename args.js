@@ -99,7 +99,8 @@ const args = require("yargs")
 		"crawl-max-depth": 1,
 		"crawl-external-links-max-depth": 1,
 		"crawl-replace-urls": false,
-		"crawl-rewrite-rule": []
+		"crawl-rewrite-rule": [],
+		"http-port": 8881,
 	})
 	.options("back-end", { description: "Back-end to use" })
 	.choices("back-end", ["jsdom", "puppeteer", "webdriver-chromium", "webdriver-gecko", "puppeteer-firefox", "playwright-firefox", "playwright-chromium"])
@@ -251,6 +252,8 @@ const args = require("yargs")
 	.string("web-driver-executable-path")
 	.options("output-directory", { description: "Path to where to save files, this path must exist." })
 	.string("output-directory")
+	.options("http-port", { description: "http port" })
+	.number("http-port")
 	.argv;
 args.backgroundSave = true;
 args.compressCSS = args.compressCss;

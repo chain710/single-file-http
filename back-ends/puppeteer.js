@@ -30,7 +30,7 @@ const EXECUTION_CONTEXT_DESTROYED_ERROR = "Execution context was destroyed";
 const NETWORK_IDLE_STATE = "networkidle0";
 const NETWORK_STATES = ["networkidle0", "networkidle2", "load", "domcontentloaded"];
 
-let browser;
+// let browser;
 
 exports.initialize = async options => {
 	if (options.browserServer) {
@@ -41,7 +41,7 @@ exports.initialize = async options => {
 	return browser;
 };
 
-exports.getPageData = async (options, page) => {
+exports.getPageData = async (browser, options, page) => {
 	const privatePage = !page;
 	try {
 		if (privatePage) {
@@ -56,9 +56,9 @@ exports.getPageData = async (options, page) => {
 	}
 };
 
-exports.closeBrowser = () => {
+exports.closeBrowser = async (browser) => {
 	if (browser) {
-		return browser.close();
+		await browser.close();
 	}
 };
 
@@ -184,6 +184,8 @@ async function pageGoto(page, options) {
 		await page.goto(options.url, { waitUntil: "domcontentloaded" });
 		await page.setContent(options.content, loadOptions);
 	} else {
+		console.log(`goto ${options.url} options timeout=${loadOptions.timeout} util=${loadOptions.waitUntil}`);
 		await page.goto(options.url, loadOptions);
+		console.log(`goto finish ${options.url}`);
 	}
 }

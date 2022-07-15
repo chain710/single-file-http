@@ -21,6 +21,7 @@
 	},
 	"homepage": "https://github.com/gildas-lormeau/single-file-cli#readme",
 	"dependencies": {
+		"express": "^4.18.1",
 		"file-url": "3.0.0",
 		"iconv-lite": "0.6.3",
 		"jsdom": "19.0.0",

@@ -1,4 +1,10 @@
-# SingleFile CLI (Command Line Interface)
+# SingleFile HTTP service
+
+hack of https://github.com/gildas-lormeau/single-file-cli
+
+## Note
+
+docker run with --init param to avoid zombie child process
 
 ## Introduction
 
