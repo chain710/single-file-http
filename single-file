@@ -28,6 +28,9 @@
 const fs = require("fs");
 const api = require("./single-file-cli-api");
 const express = require("express");
+const { Readability } = require("@mozilla/readability");
+const { JSDOM } = require("jsdom");
+
 const CONFIGURABLE_OPTION_NAMES = {
   browserLoadMaxTime: Number,
   browserWaitUntil: String,
@@ -55,6 +58,47 @@ async function run(options) {
   }
 
   const app = express();
+
+  app.get("/read", async function (req, res) {
+    let optionInQuery = {};
+    for (const prop in CONFIGURABLE_OPTION_NAMES) {
+      if (!req.query[prop]) {
+        continue;
+      }
+
+      try {
+        optionInQuery[prop] = CONFIGURABLE_OPTION_NAMES[prop](req.query[prop]);
+        console.log(`use option ${prop} in query ${optionInQuery[prop]}`);
+      } catch (e) {
+        console.error(`invalid option ${prop} in query`);
+      }
+    }
+
+    let opt = Object.assign({}, options, optionInQuery);
+    opt.retrieveLinks = true;
+    const url = req.query.url;
+    let sf;
+    try {
+      sf = await api.initialize(opt);
+      let pageContent = await capture(sf, url, opt);
+      let doc = new JSDOM(pageContent, { url: url });
+      let reader = new Readability(doc.window.document);
+      let article = reader.parse();
+      res.send(article.content);
+    } catch (e) {
+      if (e instanceof InputError) {
+        res.status(400).send(e.message);
+      } else {
+        res.status(500).send(`capture error: ${e}`);
+      }
+    } finally {
+      if (sf) {
+        await sf.close();
+        console.log("browser closed");
+      }
+    }
+  });
+
   app.get("/", async function (req, res) {
     let optionInQuery = {};
     for (const prop in CONFIGURABLE_OPTION_NAMES) {
@@ -105,8 +149,18 @@ async function capture(sf, url, options) {
     throw new InputError("invalid url");
   }
   options.retrieveLinks = true;
-  const pageContent = await sf.capture(url);
-  return pageContent;
+  return await sf.capture(url);
+}
+
+async function capture_document(sf, url, options) {
+  if (!url) {
+    throw new InputError("url not provided");
+  }
+  if (!api.VALID_URL_TEST.test(url)) {
+    throw new InputError("invalid url");
+  }
+  options.retrieveLinks = true;
+  return await sf.capture_document(url);
 }
 
 function parseCookies(textValue) {
